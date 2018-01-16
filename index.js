@@ -8,7 +8,9 @@ var actions = {
 	get_locations: { endpoint: '/company/locations', method: 'GET' },
 	create_candidate: { endpoint: '/candidates', method: 'POST' },
 	get_candidates: { endpoint: '/candidates', method: 'GET' },
-  get_candidate: { endpoint: '/candidates/{candidate_id}', method: 'GET' }
+  get_candidate: { endpoint: '/candidates/{candidate_id}', method: 'GET' },
+  create_candidate: { endpoint: '/candidates', method: 'POST' },
+  update_candidate: { endpoint: '/candidates/{candidate_id}', method: 'PUT' },
 }
 
 function make_request(action, data, callback) {
@@ -16,6 +18,9 @@ function make_request(action, data, callback) {
 	let options;
   let endpoint = actions[action].endpoint;
 	if (method == 'POST' || method == 'PUT') {
+    if (action == "update_candidate") {
+      endpoint = endpoint.replace("{candidate_id}", data['candidate_id']);
+    }
 		options = { 
 	        method: actions[action].method,
           headers: { "authorization" : "token " + api_token},
@@ -38,6 +43,7 @@ function make_request(action, data, callback) {
 	// console.log(options);
     request(options, callback);
 }
+
 module.exports = { 
     
     get_candidates: function(data, callback) {
@@ -64,6 +70,29 @@ module.exports = {
       }
       let qs = Object.assign(candidate_info, data);
       make_request('get_candidate', qs, function(err, resp, body) {
+        callback(err, body);
+      })
+    },
+
+    create_candidate: function(data, callback) {
+      if (!api_token) {
+        return callback(new Error("Token not set"));
+      }
+      let qs = data;
+      make_request('create_candidate', qs, function(err, resp, body) {
+        callback(err, body);
+      })
+    },
+
+    update_candidate: function(candidate_id, data, callback) {
+      let candidate_info = {
+        candidate_id: candidate_id
+      }
+      if (!api_token) {
+        return callback(new Error("Token not set"));
+      }
+      let qs = Object.assign(candidate_info, data);
+      make_request('update_candidate', qs, function(err, resp, body) {
         callback(err, body);
       })
     },
